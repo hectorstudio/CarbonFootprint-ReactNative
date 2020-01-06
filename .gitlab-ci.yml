@@ -37,7 +37,7 @@ build:
         - npm install
         - mv app/config/keys.sample.js app/config/keys.js
         - 'envsubst < ./android/local.properties > ./android/temp.properties && mv ./android/temp.properties ./android/local.properties'
-        - 'touch ./android/app/google-services.json && echo "$GOOGLE_SERVICES" > ./android/app/google-services.json'
+        - 'touch ./android/app/google-services.json && echo $GOOGLE_SERVICES > ./android/app/google-services.json'
         - "sed -i '14d' ./node_modules/react-native-activity-recognition/android/src/main/java/com/xebia/activityrecognition/RNActivityRecognitionPackage.java"
         - "sed -i '25d' ./node_modules/tipsi-twitter/android/src/main/java/com/gettipsi/reactnativetwittersdk/TwitterReactPackage.java"
         - "sed -i 's/com.google.android.gms:play-services:+/com.google.android.gms:play-services-gcm:15.0.1/' ./node_modules/react-native-activity-recognition/android/build.gradle"
