@@ -1,15 +1,14 @@
 stages:
 - dependencies
-- pre-scripts
 # - test
 - build_apk
-
-image: node:8.17.0
+- deploy_appetize
 
 
 install_dependencies:
     stage: dependencies
-    
+    image: node:8.17.0
+
     script:
     - npm install
     
@@ -18,8 +17,9 @@ install_dependencies:
         - node_modules/
 
         
-run_pre-scripts :
-    stage: pre-scripts
+build_job :
+    stage: build_apk
+    image: reactnativecommunity/react-native-android
     
     dependencies:
     - install_dependencies
@@ -40,11 +40,15 @@ run_pre-scripts :
     
     - rm -rf android/app/build
     
+    - cd android && ./gradlew assembleDebug --stacktrace
+    - mv ./app/build/outputs/apk/debug/app-debug.apk ../app-debug.apk
+    
+    - 'cd .. && touch req.json && echo {\"url\":\"$CI_JOB_URL/artifacts/raw/app-debug.apk\",\"platform\": \"android\" } > req.json'
+    
     artifacts:
         paths:
-        - android/
-        - app/
-        - node_modules/
+        - app-debug.apk
+        - req.json
         
 # unit_test:
 #     stage: test
@@ -54,18 +58,14 @@ run_pre-scripts :
     
 #     script:
 #     - npm test 
+    
 
-build_job:
-    stage: build_apk
-    image: reactnativecommunity/react-native-android
+deploy_appetize_job:
+    stage: deploy_appetize
     
     dependencies:
-    - run_pre-scripts
-
+    - build_job
+    
     script:
-    - cd android && ./gradlew assembleDebug --stacktrace
-    - mv ./app/build/outputs/apk/debug/app-debug.apk ../app-debug.apk
-
-    artifacts:
-        paths:
-        - app-debug.apk
+    - 'curl -s -X POST -H "Content-Type: application/json" -d @req.json https://$APPETIZE_API@api.appetize.io/v1/apps/$APPETIZE_KEY > response.json'
+    
